@@ -5,15 +5,25 @@ using namespace std;
 // Any live cell with two or three live neighbors lives on.
 // Any live cell with more than three live neighbors dies (overpopulation).
 // Any dead cell with exactly three live neighbors becomes alive (reproduction)
- int cell_status (int i, int j, int rows, int cols, int living_neighbors) {
-    int alive = 0;
-    if (living_neighbors < 2 || living_neighbors > 3) {
-        alive = 0;
-    } else if (living_neighbors == 3 || living_neighbors == 2) {
-        alive = 1;
-    } else {
-        alive = 0;
+ int isAlive (int alive, int living_neighbors) {
+    
+    // if cell is alive
+    if (alive == 1) {
+        if (living_neighbors < 2) {
+            alive = 0;
+        } else if ( living_neighbors == 2 || living_neighbors == 3) {
+            alive= 1;
+        } else if ( living_neighbors > 3) {
+            alive = 0;
+        }
     }
+
+    if (alive == 0) {
+        if (living_neighbors == 3) {
+            alive = 1;
+        }
+    }
+
     return alive;
  }
 
@@ -35,7 +45,15 @@ int main () {
     // Make rows, cols matrix of ints
     int board[rows][cols];
 
-    // populates the board w/ 1s for even row+col and 0's for odd
+    for (int i = 0; i<rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            
+            board[i][j] = rand()%2; // random 0 or 1 start
+
+        }
+    }
+
+    // populates the board in a checkerboard pattern
     // for (int i = 0; i<rows; i++) {
     //     for (int j = 0; j < cols; j++) {
             
@@ -47,27 +65,28 @@ int main () {
     //     }
     // }
 
-    // A little walking guy
+    // A little walking guy for calibration
     // 0 1 0
     // 0 0 1
     // 1 1 1
-    for (int i = 0; i<rows; i++) {
-        for (int j = 0; j < cols; j++) {
+    // for (int i = 0; i<rows; i++) {
+    //     for (int j = 0; j < cols; j++) {
             
-            board[i][j] = 0;
-            if (i == 0 && j == 1) {
-                board[i][j] = 1;
-            }
-            if (i == 1 && j == 2) {
-                board[i][j] = 1;
-            }
-            if (i == 2 && (j == 0 || j == 1 || j == 2 )) {
-                board[i][j] = 1;
-            }
+    //         board[i][j] = 0;
+    //         if (i == 0 && j == 1) {
+    //             board[i][j] = 1;
+    //         }
+    //         if (i == 1 && j == 2) {
+    //             board[i][j] = 1;
+    //         }
+    //         if (i == 2 && (j == 0 || j == 1 || j == 2 )) {
+    //             board[i][j] = 1;
+    //         }
 
-        }
-    }
+    //     }
+    // }
 
+    // print starting board
     for (int i = 0; i <rows; i++) {
         // inner loop (elements within rows)
         for (int j = 0; j<cols; j++) {
@@ -102,23 +121,23 @@ int main () {
                 // Corner checks
                 bool corner = false;
                 if (i == 0 && j == 0) {
-                    int living_neighbors = board[0][1] + board[1][0] + board[1][1];
-                    next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                    int living_neighbors = board[i][j+1] + board[i+1][j] + board[i+1][j+1];
+                    next_board[i][j] = isAlive( board[i][j], living_neighbors);
                     corner = true;
 
                 } else if (i == 0 && j == cols-1) {
-                    int living_neighbors = board[0][cols-2] + board[1][cols-1] + board[1][cols-2];
-                    next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                    int living_neighbors = board[i][cols-2] + board[i+1][cols-1] + board[i+1][cols-2];
+                    next_board[i][j] = isAlive( board[i][j], living_neighbors);
                     corner = true;
 
                 } else if ( i == rows-1 && j == 0) {
-                    int living_neighbors = board[rows-2][0] + board[rows-2][1] + board[rows-1][1];
-                    next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                    int living_neighbors = board[rows-2][j] + board[rows-2][j+1] + board[rows-1][j+1];
+                    next_board[i][j] = isAlive( board[i][j], living_neighbors);
                     corner = true;
 
                 } else if ( i == rows-1 && j == cols-1) {
                     int living_neighbors = board[rows-2][cols-1]+board[rows-2][cols-2] + board[rows-1][cols-2];
-                    next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                    next_board[i][j] = isAlive( board[i][j], living_neighbors);
                     corner = true;
                 } 
 
@@ -127,20 +146,20 @@ int main () {
                 bool center = false;
                 if (not corner){
                     if (i == 0) { // top row
-                        int living_neighbors = board[0][j-1] + board[0][j+1] + board[1][j-1] + board[1][j] + board[1][j+1];
-                        next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                        int living_neighbors = board[i][j-1] + board[i][j+1] + board[i+1][j-1] + board[i+1][j] + board[i+1][j+1];
+                        next_board[i][j] = isAlive( board[i][j], living_neighbors);
                         edge = true;
                     } else if (i == rows-1) { // bottom row
                         int living_neighbors = board[rows-1][j-1] + board[rows-1][j+1] + board[rows-2][j-1] + board[rows-2][j] + board[rows-2][j+1];
-                        next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                        next_board[i][j] = isAlive( board[i][j], living_neighbors);
                         edge = true;
                     } else if (j == 0) { // left col
                         int living_neighbors =  board[i-1][j] + board[i+1][j] + board[i][j+1] + board[i-1][j+1] + board[i+1][j+1];
-                        next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                        next_board[i][j] = isAlive( board[i][j], living_neighbors);
                         edge = true;
                     } else if (j == cols-1) { // right col
                         int living_neighbors = board[i-1][j] + board[i+1][j] + board[i][j-1] + board[i-1][j-1] +  board[i+1][j-1];
-                        next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                        next_board[i][j] = isAlive( board[i][j], living_neighbors);
                         edge = true;
                     } else {
                         edge = false;
@@ -150,7 +169,7 @@ int main () {
 
                 if (not corner && not edge) {
                     int living_neighbors = board[i][j-1] + board[i][j+1] + board[i-1][j-1] + board[i-1][j] + board[i-1][j+1] + board[i+1][j-1] + board[i+1][j] + board[i+1][j+1];
-                    next_board[i][j] = cell_status(i, j, rows, cols, living_neighbors);
+                    next_board[i][j] = isAlive( board[i][j], living_neighbors);
                     center = true;
                 } 
             }
